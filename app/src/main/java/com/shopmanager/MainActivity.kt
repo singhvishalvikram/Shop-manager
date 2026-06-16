@@ -30,6 +30,7 @@ import com.shopmanager.utils.ImageUtils
 import java.io.File
 import java.text.NumberFormat
 import java.util.*
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -287,10 +288,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeData() {
-        lifecycleScope.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            viewModel.searchResults.collect { items ->
-                itemAdapter.submitList(items)
-                itemCountLabel.text = "${items.size} item${if (items.size != 1) "s" else ""}"
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.searchResults.collect { items ->
+                    itemAdapter.submitList(items)
+                    itemCountLabel.text = "${items.size} item${if (items.size != 1) "s" else ""}"
+                }
             }
         }
 
