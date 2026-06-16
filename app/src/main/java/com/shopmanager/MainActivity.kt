@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -195,7 +196,7 @@ class MainActivity : AppCompatActivity() {
         // Init RecyclerView
         itemsRecyclerView.layoutManager = LinearLayoutManager(this)
         itemsRecyclerView.adapter = itemAdapter
-        itemAdapter.setOnClickListener { item ->
+        itemAdapter.setOnItemClickListener { item ->
             viewModel.loadItem(item.id)
             navigateTo(Screen.ITEM_DETAIL)
         }
@@ -284,14 +285,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeData() {
-        viewModel.searchResults.observe(this) { items ->
-            itemAdapter.submitList(items)
-            itemCountLabel.text = "${items.size} item${if (items.size != 1) "s" else ""}"
+        lifecycleScope.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewModel.searchResults.collect { items ->
+                itemAdapter.submitList(items)
+                itemCountLabel.text = "${items.size} item${if (items.size != 1) "s" else ""}"
+            }
         }
 
         viewModel.totalCount.observe(this) { statTotalItems.text = it.toString() }
-        viewModel.averagePrice.observe(this) { statAvgPrice.text = formatPrice(it) }
-        viewModel.totalStockValue.observe(this) { statStockValue.text = formatPrice(it) }
+        viewModel.averagePrice.observe(this) { statAvgPrice.text = formatPrice(it ?: 0.0) }
+        viewModel.totalStockValue.observe(this) { statStockValue.text = formatPrice(it ?: 0.0) }
 
         viewModel.types.observe(this) { types ->
             val counts = viewModel.typeCounts.value ?: emptyMap()
