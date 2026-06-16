@@ -92,7 +92,7 @@ interface ItemDao {
 
     // For sale summary
     @Query("""
-        SELECT i.id, i.name, SUM(s.quantitySold) as totalSold
+        SELECT i.id as itemId, i.name as itemName, SUM(s.quantitySold) as totalSold
         FROM items i
         LEFT JOIN sales s ON i.id = s.itemId
         GROUP BY i.id

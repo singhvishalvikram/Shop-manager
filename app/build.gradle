@@ -7,8 +7,6 @@ plugins {
 android {
     namespace 'com.shopmanager'
     compileSdk 34
-    buildToolsVersion '35.0.0'
-    ndkVersion '25.2.9519653'
 
     defaultConfig {
         applicationId 'com.shopmanager'

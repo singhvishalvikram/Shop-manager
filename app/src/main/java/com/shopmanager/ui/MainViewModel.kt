@@ -29,8 +29,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val totalCount: LiveData<Int> = dao.getTotalCountFlow().asLiveData()
-    val averagePrice: LiveData<Double> = dao.getAveragePriceFlow().asLiveData()
-    val totalStockValue: LiveData<Double> = dao.getTotalStockValueFlow().asLiveData()
+    val averagePrice: LiveData<Double?> = dao.getAveragePriceFlow().asLiveData()
+    val totalStockValue: LiveData<Double?> = dao.getTotalStockValueFlow().asLiveData()
     val recentItems: LiveData<List<Item>> = dao.getRecentItemsFlow().asLiveData()
 
     private val _types = MutableLiveData<List<String>>(emptyList())
