@@ -12,8 +12,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -285,7 +287,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeData() {
-        lifecycleScope.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+        lifecycleScope.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.searchResults.collect { items ->
                 itemAdapter.submitList(items)
                 itemCountLabel.text = "${items.size} item${if (items.size != 1) "s" else ""}"
