@@ -1,0 +1,20 @@
+# Built files
+*.apk
+*.aab
+/app/build/
+/build/
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Gradle
+.gradle/
+local.properties
+
+# NDK
+obj/
+
+# Logs
+*.log
