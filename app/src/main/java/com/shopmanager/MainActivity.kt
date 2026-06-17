@@ -215,7 +215,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         itemsRecyclerView.layoutManager = LinearLayoutManager(this)
         itemsRecyclerView.adapter = itemAdapter
-        itemAdapter.setOnClickListener { item ->
+        itemAdapter.setOnItemClickListener { item ->
             viewModel.loadItem(item.id)
             navigateTo(Screen.ITEM_DETAIL)
         }
