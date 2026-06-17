@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var inputType: TextInputEditText
     private lateinit var inputDescription: TextInputEditText
     private lateinit var inputPrice: TextInputEditText
+    private lateinit var inputQuantity: TextInputEditText
     private lateinit var inputLocation: TextInputEditText
     private lateinit var btnSaveItem: MaterialButton
     private lateinit var btnCancelForm: MaterialButton
@@ -180,6 +181,7 @@ class MainActivity : AppCompatActivity() {
         inputType = findViewById(R.id.inputType)
         inputDescription = findViewById(R.id.inputDescription)
         inputPrice = findViewById(R.id.inputPrice)
+        inputQuantity = findViewById(R.id.inputQuantity)
         inputLocation = findViewById(R.id.inputLocation)
         btnSaveItem = findViewById(R.id.btnSaveItem)
         btnCancelForm = findViewById(R.id.btnCancelForm)
@@ -297,7 +299,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.totalCount.observe(this) { statTotalItems.text = it.toString() }
+        viewModel.totalCount.observe(this) { statTotalItems.text = (it ?: 0).toString() }
         viewModel.averagePrice.observe(this) { statAvgPrice.text = formatPrice(it ?: 0.0) }
         viewModel.totalStockValue.observe(this) { statStockValue.text = formatPrice(it ?: 0.0) }
 
@@ -396,6 +398,7 @@ class MainActivity : AppCompatActivity() {
         inputType.text?.clear()
         inputDescription.text?.clear()
         inputPrice.text?.clear()
+        inputQuantity.text?.clear()
         inputLocation.text?.clear()
         itemPhotoPreview.visibility = View.GONE
         formTitle.text = "Add New Item"
@@ -409,6 +412,7 @@ class MainActivity : AppCompatActivity() {
         inputType.setText(item.type)
         inputDescription.setText(item.description)
         inputPrice.setText(if (item.price > 0) item.price.toString() else "")
+        inputQuantity.setText(if (item.quantity > 0) item.quantity.toString() else "0")
         inputLocation.setText(item.location)
         capturedPhotoPath = item.imagePath
         if (item.imagePath.isNotEmpty()) showPhotoPreview(item.imagePath)
@@ -422,12 +426,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         val price = inputPrice.text?.toString()?.toDoubleOrNull() ?: 0.0
+        val quantity = inputQuantity.text?.toString()?.toIntOrNull() ?: 0
 
         viewModel.saveItem(
             name = name,
             type = inputType.text?.toString()?.trim() ?: "",
             description = inputDescription.text?.toString()?.trim() ?: "",
             price = price,
+            quantity = quantity,
             imagePath = capturedPhotoPath ?: "",
             location = inputLocation.text?.toString()?.trim() ?: ""
         )

@@ -92,6 +92,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         type: String,
         description: String,
         price: Double,
+        quantity: Int,
         imagePath: String,
         location: String
     ) {
@@ -107,6 +108,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         type = type,
                         description = description,
                         price = price,
+                        quantity = quantity,
                         imagePath = imagePath.ifBlank { item.imagePath },
                         location = location,
                         updatedAt = now
@@ -119,6 +121,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         type = type,
                         description = description,
                         price = price,
+                        quantity = quantity,
                         imagePath = imagePath,
                         location = location,
                         createdAt = now,
