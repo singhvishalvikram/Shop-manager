@@ -20,7 +20,7 @@ data class Sale(
     val id: Long = 0,
     val itemId: Long,
     val quantitySold: Int,
-    val salePrice: Double,    // price at which it was sold (can differ from item price)
+    val salePrice: Double,
     val saleDate: Long = System.currentTimeMillis(),
     val description: String = ""
 )

@@ -14,9 +14,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val dao = AppDatabase.getInstance(application).itemDao()
 
-    // Public State
-    val allItems: Flow<List<Item>> = dao.getAllItemsFlow()
-
+    // Search
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
@@ -28,32 +26,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Dashboard stats
     val totalCount: LiveData<Int> = dao.getTotalCountFlow().asLiveData()
     val averagePrice: LiveData<Double?> = dao.getAveragePriceFlow().asLiveData()
     val totalStockValue: LiveData<Double?> = dao.getTotalStockValueFlow().asLiveData()
     val recentItems: LiveData<List<Item>> = dao.getRecentItemsFlow().asLiveData()
 
+    // Types
     private val _types = MutableLiveData<List<String>>(emptyList())
     val types: LiveData<List<String>> = _types
 
     private val _typeCounts = MutableLiveData<Map<String, Int>>(emptyMap())
     val typeCounts: LiveData<Map<String, Int>> = _typeCounts
 
-    private val _currentItem = MutableLiveData<Item?>()
-    val currentItem: LiveData<Item?> = _currentItem
-
-    // Navigation
-    private val _currentScreen = MutableLiveData(Screen.DASHBOARD)
-    val currentScreen: LiveData<Screen> = _currentScreen
-
+    // Editing
     private val _editingItemId = MutableLiveData<Long?>(null)
     val editingItemId: LiveData<Long?> = _editingItemId
 
-    enum class Screen { DASHBOARD, ITEMS, ADD_ITEM, ITEM_DETAIL }
+    private val _editingItem = MutableLiveData<Item?>()
+    val editingItem: LiveData<Item?> = _editingItem
 
-    fun navigateTo(screen: Screen) { _currentScreen.value = screen }
-
-    // Actions
     fun setSearchQuery(query: String) { _searchQuery.value = query }
 
     fun loadTypes() {
@@ -70,21 +62,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadItem(id: Long) {
         viewModelScope.launch {
-            _currentItem.value = dao.getItemById(id)
+            val item = dao.getItemById(id)
+            _editingItem.value = item
         }
-    }
-
-    fun startEditing(id: Long) {
-        _editingItemId.value = id
-        viewModelScope.launch {
-            _currentItem.value = dao.getItemById(id)
-        }
-        navigateTo(Screen.ADD_ITEM)
     }
 
     fun clearEditing() {
         _editingItemId.value = null
-        _currentItem.value = null
+        _editingItem.value = null
     }
 
     fun saveItem(
@@ -130,22 +115,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
             clearEditing()
-            navigateTo(Screen.ITEMS)
         }
     }
 
     fun deleteItem(item: Item) {
         viewModelScope.launch {
             dao.deleteItem(item)
-            com.shopmanager.utils.ImageUtils.deleteImage(item.imagePath)
-            navigateTo(Screen.ITEMS)
-        }
-    }
-
-    fun deleteItemById(id: Long) {
-        viewModelScope.launch {
-            val item = dao.getItemById(id) ?: return@launch
-            dao.deleteItemById(id)
             com.shopmanager.utils.ImageUtils.deleteImage(item.imagePath)
         }
     }

@@ -1,19 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Shop Manager</string>
-    <string name="dashboard">Dashboard</string>
-    <string name="items">Items</string>
-    <string name="add_item">Add Item</string>
-    <string name="search_hint">Search by name, type, or description...</string>
-    <string name="save">Save</string>
-    <string name="cancel">Cancel</string>
-    <string name="delete">Delete</string>
-    <string name="edit">Edit</string>
-    <string name="take_photo">Take Photo</string>
-    <string name="no_items">No items yet</string>
-    <string name="total_items">Total Items</string>
-    <string name="categories">Categories</string>
-    <string name="avg_price">Avg Price</string>
-    <string name="stock_value">Stock Value</string>
-    <string name="camera_permission">Camera permission is needed to take photos of items.</string>
 </resources>

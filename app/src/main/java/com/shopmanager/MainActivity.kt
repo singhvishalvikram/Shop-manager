@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.appbar.MaterialToolbar
+import androidx.compose.ui.graphics.Color
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -45,7 +46,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bottomNav: BottomNavigationView
     private lateinit var itemsRecyclerView: RecyclerView
     private lateinit var searchInput: TextInputEditText
-    private lateinit var searchClearBtn: ImageButton
     private lateinit var itemCountLabel: TextView
     private lateinit var statTotalItems: TextView
     private lateinit var statTypes: TextView
@@ -70,6 +70,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var detailType: TextView
     private lateinit var detailDescription: TextView
     private lateinit var detailPrice: TextView
+    private lateinit var detailQuantity: TextView
     private lateinit var detailLocation: TextView
     private lateinit var btnEditItem: MaterialButton
     private lateinit var btnDeleteItem: MaterialButton
@@ -131,12 +132,14 @@ class MainActivity : AppCompatActivity() {
             private val name = itemView.findViewById<TextView>(R.id.rowName)
             private val type = itemView.findViewById<TextView>(R.id.rowType)
             private val price = itemView.findViewById<TextView>(R.id.rowPrice)
+            private val quantity = itemView.findViewById<TextView>(R.id.rowQuantity)
             private val image = itemView.findViewById<ImageView>(R.id.rowImage)
 
             fun bind(item: Item) {
                 name.text = item.name
-                type.text = item.type
+                type.text = item.type.ifEmpty { "—" }
                 price.text = formatPrice(item.price)
+                quantity.text = "Qty: ${item.quantity}"
                 if (item.imagePath.isNotEmpty()) {
                     Glide.with(this@MainActivity)
                         .load(File(item.imagePath))
@@ -157,7 +160,20 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Bind all views
+        bindAllViews()
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+
+        setupRecyclerView()
+        setupBottomNavigation()
+        setupSearch()
+        setupFormButtons()
+        setupDetailButtons()
+        observeData()
+
+        navigateTo(Screen.DASHBOARD)
+    }
+
+    private fun bindAllViews() {
         screenDashboard = findViewById(R.id.screenDashboard)
         screenItems = findViewById(R.id.screenItems)
         screenAddItem = findViewById(R.id.screenAddItem)
@@ -166,7 +182,6 @@ class MainActivity : AppCompatActivity() {
         bottomNav = findViewById(R.id.bottomNav)
         itemsRecyclerView = findViewById(R.id.itemsRecyclerView)
         searchInput = findViewById(R.id.searchInput)
-        searchClearBtn = findViewById(R.id.searchClearBtn)
         itemCountLabel = findViewById(R.id.itemCountLabel)
         statTotalItems = findViewById(R.id.statTotalItems)
         statTypes = findViewById(R.id.statTypes)
@@ -191,22 +206,23 @@ class MainActivity : AppCompatActivity() {
         detailType = findViewById(R.id.detailType)
         detailDescription = findViewById(R.id.detailDescription)
         detailPrice = findViewById(R.id.detailPrice)
+        detailQuantity = findViewById(R.id.detailQuantity)
         detailLocation = findViewById(R.id.detailLocation)
         btnEditItem = findViewById(R.id.btnEditItem)
         btnDeleteItem = findViewById(R.id.btnDeleteItem)
         btnBackFromDetail = findViewById(R.id.btnBackFromDetail)
+    }
 
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-
-        // Init RecyclerView
+    private fun setupRecyclerView() {
         itemsRecyclerView.layoutManager = LinearLayoutManager(this)
         itemsRecyclerView.adapter = itemAdapter
-        itemAdapter.setOnItemClickListener { item ->
+        itemAdapter.setOnClickListener { item ->
             viewModel.loadItem(item.id)
             navigateTo(Screen.ITEM_DETAIL)
         }
+    }
 
-        // Bottom Navigation
+    private fun setupBottomNavigation() {
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_dashboard -> navigateTo(Screen.DASHBOARD)
@@ -219,21 +235,19 @@ class MainActivity : AppCompatActivity() {
             }
             true
         }
+    }
 
-        // Search
+    private fun setupSearch() {
         searchInput.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 viewModel.setSearchQuery(s?.toString() ?: "")
-                searchClearBtn.visibility = if (s?.isNotEmpty() == true) View.VISIBLE else View.GONE
             }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
-        searchClearBtn.setOnClickListener {
-            searchInput.text?.clear()
-        }
+    }
 
-        // Form buttons
+    private fun setupFormButtons() {
         btnTakePhoto.setOnClickListener { requestCamera() }
         btnSaveItem.setOnClickListener { saveItem() }
         btnCancelForm.setOnClickListener {
@@ -241,52 +255,21 @@ class MainActivity : AppCompatActivity() {
             clearForm()
             navigateTo(Screen.ITEMS)
         }
+    }
 
-        // Detail buttons
+    private fun setupDetailButtons() {
         btnEditItem.setOnClickListener {
-            viewModel.currentItem.value?.let { item ->
-                viewModel.startEditing(item.id)
+            viewModel.editingItem.value?.let { item ->
                 populateForm(item)
+                navigateTo(Screen.ADD_ITEM)
             }
         }
         btnDeleteItem.setOnClickListener {
-            viewModel.currentItem.value?.let { item ->
+            viewModel.editingItem.value?.let { item ->
                 confirmDelete(item)
             }
         }
         btnBackFromDetail.setOnClickListener { navigateTo(Screen.ITEMS) }
-
-        // Observe data
-        observeData()
-
-        // Start on dashboard
-        navigateTo(Screen.DASHBOARD)
-    }
-
-    private enum class Screen { DASHBOARD, ITEMS, ADD_ITEM, ITEM_DETAIL }
-
-    private fun navigateTo(screen: Screen) {
-        screenDashboard.visibility = if (screen == Screen.DASHBOARD) View.VISIBLE else View.GONE
-        screenItems.visibility = if (screen == Screen.ITEMS) View.VISIBLE else View.GONE
-        screenAddItem.visibility = if (screen == Screen.ADD_ITEM) View.VISIBLE else View.GONE
-        screenItemDetail.visibility = if (screen == Screen.ITEM_DETAIL) View.VISIBLE else View.GONE
-
-        toolbar.title = when (screen) {
-            Screen.DASHBOARD -> "Dashboard"
-            Screen.ITEMS -> "Items"
-            Screen.ADD_ITEM -> if (viewModel.editingItemId.value != null) "Edit Item" else "Add Item"
-            Screen.ITEM_DETAIL -> "Item Details"
-        }
-
-        when (screen) {
-            Screen.DASHBOARD -> {
-                bottomNav.selectedItemId = R.id.nav_dashboard
-                viewModel.loadTypes()
-            }
-            Screen.ITEMS -> bottomNav.selectedItemId = R.id.nav_items
-            Screen.ADD_ITEM -> bottomNav.selectedItemId = R.id.nav_add
-            else -> {}
-        }
     }
 
     private fun observeData() {
@@ -306,38 +289,63 @@ class MainActivity : AppCompatActivity() {
         viewModel.types.observe(this) { types ->
             val counts = viewModel.typeCounts.value ?: emptyMap()
             statTypes.text = types.size.toString()
-            if (types.isEmpty()) {
-                dashTypeBreakdown.text = "No items yet"
-            } else {
-                dashTypeBreakdown.text = types.joinToString("\n") { t ->
-                    "  • $t (${counts[t] ?: 0})"
-                }
-            }
+            dashTypeBreakdown.text = if (types.isEmpty()) "No items yet"
+            else types.joinToString("\n") { "  • $it (${counts[it] ?: 0})" }
         }
 
         viewModel.recentItems.observe(this) { items ->
             dashRecentItems.removeAllViews()
             if (items.isEmpty()) {
-                val tv = TextView(this).apply {
+                dashRecentItems.addView(TextView(this).apply {
                     text = "No items yet"
                     setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_secondary))
-                }
-                dashRecentItems.addView(tv)
+                    textSize = 14f
+                })
             } else {
                 items.forEach { item ->
-                    val tv = TextView(this).apply {
+                    dashRecentItems.addView(TextView(this).apply {
                         text = "${item.name}  —  ${formatPrice(item.price)}"
                         setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_primary))
                         textSize = 14f
                         setPadding(0, 6, 0, 6)
-                    }
-                    dashRecentItems.addView(tv)
+                    })
                 }
             }
         }
 
-        viewModel.currentItem.observe(this) { item ->
-            if (item != null) showItemDetail(item)
+        viewModel.editingItem.observe(this) { item ->
+            if (item != null && currentScreen == Screen.ITEM_DETAIL) {
+                showItemDetail(item)
+            }
+        }
+    }
+
+    private var currentScreen = Screen.DASHBOARD
+
+    private enum class Screen { DASHBOARD, ITEMS, ADD_ITEM, ITEM_DETAIL }
+
+    private fun navigateTo(screen: Screen) {
+        currentScreen = screen
+        screenDashboard.visibility = if (screen == Screen.DASHBOARD) View.VISIBLE else View.GONE
+        screenItems.visibility = if (screen == Screen.ITEMS) View.VISIBLE else View.GONE
+        screenAddItem.visibility = if (screen == Screen.ADD_ITEM) View.VISIBLE else View.GONE
+        screenItemDetail.visibility = if (screen == Screen.ITEM_DETAIL) View.VISIBLE else View.GONE
+
+        toolbar.title = when (screen) {
+            Screen.DASHBOARD -> "Dashboard"
+            Screen.ITEMS -> "Inventory"
+            Screen.ADD_ITEM -> if (viewModel.editingItemId.value != null) "Edit Item" else "Add Item"
+            Screen.ITEM_DETAIL -> "Item Details"
+        }
+
+        when (screen) {
+            Screen.DASHBOARD -> {
+                bottomNav.selectedItemId = R.id.nav_dashboard
+                viewModel.loadTypes()
+            }
+            Screen.ITEMS -> bottomNav.selectedItemId = R.id.nav_items
+            Screen.ADD_ITEM -> bottomNav.selectedItemId = R.id.nav_add
+            else -> {}
         }
     }
 
@@ -346,6 +354,7 @@ class MainActivity : AppCompatActivity() {
         detailType.text = item.type.ifEmpty { "—" }
         detailDescription.text = item.description.ifEmpty { "—" }
         detailPrice.text = formatPrice(item.price)
+        detailQuantity.text = item.quantity.toString()
         detailLocation.text = item.location.ifEmpty { "—" }
 
         if (item.imagePath.isNotEmpty()) {
@@ -398,11 +407,12 @@ class MainActivity : AppCompatActivity() {
         inputType.text?.clear()
         inputDescription.text?.clear()
         inputPrice.text?.clear()
-        inputQuantity.text?.clear()
+        inputQuantity.setText("0")
         inputLocation.text?.clear()
         itemPhotoPreview.visibility = View.GONE
         formTitle.text = "Add New Item"
         btnSaveItem.text = "Save Item"
+        viewModel.clearEditing()
     }
 
     private fun populateForm(item: Item) {
@@ -412,10 +422,11 @@ class MainActivity : AppCompatActivity() {
         inputType.setText(item.type)
         inputDescription.setText(item.description)
         inputPrice.setText(if (item.price > 0) item.price.toString() else "")
-        inputQuantity.setText(if (item.quantity > 0) item.quantity.toString() else "0")
+        inputQuantity.setText(item.quantity.toString())
         inputLocation.setText(item.location)
         capturedPhotoPath = item.imagePath
         if (item.imagePath.isNotEmpty()) showPhotoPreview(item.imagePath)
+        else itemPhotoPreview.visibility = View.GONE
     }
 
     private fun saveItem() {
@@ -426,6 +437,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         val price = inputPrice.text?.toString()?.toDoubleOrNull() ?: 0.0
+        if (price <= 0) {
+            inputPrice.error = "Price must be greater than 0"
+            return
+        }
+
         val quantity = inputQuantity.text?.toString()?.toIntOrNull() ?: 0
 
         viewModel.saveItem(
@@ -439,6 +455,8 @@ class MainActivity : AppCompatActivity() {
         )
 
         Toast.makeText(this, "Item saved!", Toast.LENGTH_SHORT).show()
+        clearForm()
+        navigateTo(Screen.ITEMS)
     }
 
     private fun confirmDelete(item: Item) {
@@ -448,6 +466,7 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("Delete") { _, _ ->
                 viewModel.deleteItem(item)
                 Toast.makeText(this, "Item deleted", Toast.LENGTH_SHORT).show()
+                navigateTo(Screen.ITEMS)
             }
             .setNegativeButton("Cancel", null)
             .show()
