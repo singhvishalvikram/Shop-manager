@@ -1,10 +1,7 @@
 package com.shopmanager.ui
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.shopmanager.data.AppDatabase
 import com.shopmanager.data.Item
 import kotlinx.coroutines.flow.*
@@ -16,7 +13,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // Search
     private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     val searchResults: StateFlow<List<Item>> = _searchQuery
         .debounce(300)
@@ -24,12 +20,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (query.isBlank()) dao.getAllItemsFlow()
             else flow { emit(dao.searchItems(query)) }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // Dashboard stats
     val totalCount: LiveData<Int> = dao.getTotalCountFlow().asLiveData()
-    val averagePrice: LiveData<Double?> = dao.getAveragePriceFlow().asLiveData()
-    val totalStockValue: LiveData<Double?> = dao.getTotalStockValueFlow().asLiveData()
+
+    val averagePrice: LiveData<Double> = Transformations.map(dao.getAveragePriceFlow().asLiveData()) { it ?: 0.0 }
+
+    val totalStockValue: LiveData<Double> = Transformations.map(dao.getTotalStockValueFlow().asLiveData()) { it ?: 0.0 }
+
     val recentItems: LiveData<List<Item>> = dao.getRecentItemsFlow().asLiveData()
 
     // Types
@@ -50,20 +49,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadTypes() {
         viewModelScope.launch {
-            val typeList = dao.getTypes()
-            _types.value = typeList
-            val counts = mutableMapOf<String, Int>()
-            typeList.forEach { type ->
-                counts[type] = dao.getCountByType(type)
-            }
-            _typeCounts.value = counts
+            try {
+                val typeList = dao.getTypes()
+                _types.postValue(typeList)
+                val counts = mutableMapOf<String, Int>()
+                typeList.forEach { type ->
+                    counts[type] = dao.getCountByType(type)
+                }
+                _typeCounts.postValue(counts)
+            } catch (_: Exception) {}
         }
     }
 
     fun loadItem(id: Long) {
         viewModelScope.launch {
-            val item = dao.getItemById(id)
-            _editingItem.value = item
+            try {
+                _editingItem.postValue(dao.getItemById(id))
+            } catch (_: Exception) {}
         }
     }
 
@@ -120,12 +122,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteItem(item: Item) {
         viewModelScope.launch {
-            dao.deleteItem(item)
-            com.shopmanager.utils.ImageUtils.deleteImage(item.imagePath)
+            try {
+                dao.deleteItem(item)
+                com.shopmanager.utils.ImageUtils.deleteImage(item.imagePath)
+            } catch (_: Exception) {}
         }
     }
-}
-
-fun <T> Flow<T>.asLiveData() = androidx.lifecycle.liveData {
-    collect { emit(it) }
 }

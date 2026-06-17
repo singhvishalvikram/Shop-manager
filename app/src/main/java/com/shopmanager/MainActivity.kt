@@ -282,8 +282,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         viewModel.totalCount.observe(this) { statTotalItems.text = (it ?: 0).toString() }
-        viewModel.averagePrice.observe(this) { statAvgPrice.text = formatPrice(it ?: 0.0) }
-        viewModel.totalStockValue.observe(this) { statStockValue.text = formatPrice(it ?: 0.0) }
+        viewModel.averagePrice.observe(this) { statAvgPrice.text = formatPrice(it) }
+        viewModel.totalStockValue.observe(this) { statStockValue.text = formatPrice(it) }
 
         viewModel.types.observe(this) { types ->
             val counts = viewModel.typeCounts.value ?: emptyMap()
