@@ -12,14 +12,14 @@ android {
         applicationId 'com.shopmanager'
         minSdk 24
         targetSdk 34
-        versionCode 1
-        versionName '2.0'
+        versionCode 2
+        versionName '3.0'
     }
 
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
@@ -44,6 +44,10 @@ dependencies {
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+
+    // Jetpack Navigation
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.6'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.7.6'
 
     // Room (SQLite) - offline storage
     implementation 'androidx.room:room-runtime:2.6.1'
@@ -72,4 +76,7 @@ dependencies {
 
     // CardView
     implementation 'androidx.cardview:cardview:1.0.0'
+
+    // Shimmer loading effect
+    implementation 'com.facebook.shimmer:shimmer:0.5.0'
 }

@@ -7,31 +7,33 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.shopmanager.data.AppDatabase
 import com.shopmanager.data.Item
+import com.shopmanager.data.Sale
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val dao = AppDatabase.getInstance(application).itemDao()
+    private val db = AppDatabase.getInstance(application)
+    private val itemDao = db.itemDao()
+    private val saleDao = db.saleDao()
 
-    // Public State
-    val allItems: Flow<List<Item>> = dao.getAllItemsFlow()
-
+    // ── Search ──
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     val searchResults: StateFlow<List<Item>> = _searchQuery
         .debounce(300)
         .flatMapLatest { query ->
-            if (query.isBlank()) dao.getAllItemsFlow()
-            else flow { emit(dao.searchItems(query)) }
+            if (query.isBlank()) itemDao.getAllItemsFlow()
+            else flow { emit(itemDao.searchItems(query)) }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val totalCount: LiveData<Int> = dao.getTotalCountFlow().asLiveData()
-    val averagePrice: LiveData<Double?> = dao.getAveragePriceFlow().asLiveData()
-    val totalStockValue: LiveData<Double?> = dao.getTotalStockValueFlow().asLiveData()
-    val recentItems: LiveData<List<Item>> = dao.getRecentItemsFlow().asLiveData()
+    // ── Dashboard Stats ──
+    val totalCount: LiveData<Int> = itemDao.getTotalCountFlow().asLiveData()
+    val averagePrice: LiveData<Double?> = itemDao.getAveragePriceFlow().asLiveData()
+    val totalStockValue: LiveData<Double?> = itemDao.getTotalStockValueFlow().asLiveData()
+    val recentItems: LiveData<List<Item>> = itemDao.getRecentItemsFlow().asLiveData()
 
     private val _types = MutableLiveData<List<String>>(emptyList())
     val types: LiveData<List<String>> = _types
@@ -39,30 +41,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _typeCounts = MutableLiveData<Map<String, Int>>(emptyMap())
     val typeCounts: LiveData<Map<String, Int>> = _typeCounts
 
+    // ── Current Item (for detail view) ──
     private val _currentItem = MutableLiveData<Item?>()
     val currentItem: LiveData<Item?> = _currentItem
 
-    // Navigation
-    private val _currentScreen = MutableLiveData(Screen.DASHBOARD)
-    val currentScreen: LiveData<Screen> = _currentScreen
+    // ── Sales ──
+    private val _sales = MutableLiveData<List<SaleWithItemName>>(emptyList())
+    val sales: LiveData<List<SaleWithItemName>> = _sales
 
-    private val _editingItemId = MutableLiveData<Long?>(null)
-    val editingItemId: LiveData<Long?> = _editingItemId
+    private val _totalRevenue = MutableLiveData<Double>(0.0)
+    val totalRevenue: LiveData<Double> = _totalRevenue
 
-    enum class Screen { DASHBOARD, ITEMS, ADD_ITEM, ITEM_DETAIL }
+    // ── Actions ──
 
-    fun navigateTo(screen: Screen) { _currentScreen.value = screen }
-
-    // Actions
-    fun setSearchQuery(query: String) { _searchQuery.value = query }
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
 
     fun loadTypes() {
         viewModelScope.launch {
-            val typeList = dao.getTypes()
+            val typeList = itemDao.getTypes()
             _types.value = typeList
             val counts = mutableMapOf<String, Int>()
             typeList.forEach { type ->
-                counts[type] = dao.getCountByType(type)
+                counts[type] = itemDao.getCountByType(type)
             }
             _typeCounts.value = counts
         }
@@ -70,55 +72,44 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadItem(id: Long) {
         viewModelScope.launch {
-            _currentItem.value = dao.getItemById(id)
+            _currentItem.value = itemDao.getItemById(id)
         }
-    }
-
-    fun startEditing(id: Long) {
-        _editingItemId.value = id
-        viewModelScope.launch {
-            _currentItem.value = dao.getItemById(id)
-        }
-        navigateTo(Screen.ADD_ITEM)
-    }
-
-    fun clearEditing() {
-        _editingItemId.value = null
-        _currentItem.value = null
     }
 
     fun saveItem(
+        editingId: Long?,
         name: String,
         type: String,
         description: String,
         price: Double,
+        quantity: Int,
         imagePath: String,
         location: String
     ) {
         viewModelScope.launch {
             val now = System.currentTimeMillis()
-            val existing = _editingItemId.value
-
-            if (existing != null) {
-                val item = dao.getItemById(existing) ?: return@launch
-                dao.updateItem(
+            if (editingId != null && editingId > 0) {
+                val item = itemDao.getItemById(editingId) ?: return@launch
+                itemDao.updateItem(
                     item.copy(
                         name = name,
                         type = type,
                         description = description,
                         price = price,
+                        quantity = quantity,
                         imagePath = imagePath.ifBlank { item.imagePath },
                         location = location,
                         updatedAt = now
                     )
                 )
             } else {
-                dao.insertItem(
+                itemDao.insertItem(
                     Item(
                         name = name,
                         type = type,
                         description = description,
                         price = price,
+                        quantity = quantity,
                         imagePath = imagePath,
                         location = location,
                         createdAt = now,
@@ -126,28 +117,61 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 )
             }
-            clearEditing()
-            navigateTo(Screen.ITEMS)
         }
     }
 
     fun deleteItem(item: Item) {
         viewModelScope.launch {
-            dao.deleteItem(item)
+            itemDao.deleteItem(item)
             com.shopmanager.utils.ImageUtils.deleteImage(item.imagePath)
-            navigateTo(Screen.ITEMS)
         }
     }
 
-    fun deleteItemById(id: Long) {
+    // ── Sales ──
+
+    fun loadSales() {
         viewModelScope.launch {
-            val item = dao.getItemById(id) ?: return@launch
-            dao.deleteItemById(id)
-            com.shopmanager.utils.ImageUtils.deleteImage(item.imagePath)
+            val allSales = saleDao.getAllSales()
+            val salesWithNames = allSales.map { sale ->
+                val item = itemDao.getItemById(sale.itemId)
+                SaleWithItemName(
+                    sale = sale,
+                    itemName = item?.name ?: "Deleted Item"
+                )
+            }
+            _sales.value = salesWithNames
+            _totalRevenue.value = saleDao.getTotalRevenue() ?: 0.0
         }
+    }
+
+    fun recordSale(itemId: Long, quantity: Int, salePrice: Double, description: String) {
+        viewModelScope.launch {
+            saleDao.insertSale(
+                Sale(
+                    itemId = itemId,
+                    quantitySold = quantity,
+                    salePrice = salePrice,
+                    description = description
+                )
+            )
+            itemDao.decreaseQuantity(itemId, quantity)
+        }
+    }
+
+    fun getExistingTypes(): LiveData<List<String>> {
+        val result = MutableLiveData<List<String>>()
+        viewModelScope.launch {
+            result.postValue(itemDao.getTypes())
+        }
+        return result
     }
 }
 
-fun <T> Flow<T>.asLiveData() = androidx.lifecycle.liveData {
+data class SaleWithItemName(
+    val sale: Sale,
+    val itemName: String
+)
+
+fun <T> Flow<T>.asLiveData(): LiveData<T> = androidx.lifecycle.liveData {
     collect { emit(it) }
 }

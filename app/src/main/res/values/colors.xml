@@ -1,14 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Primary -->
     <color name="primary">#FF4F46E5</color>
     <color name="primary_dark">#FF4338CA</color>
-    <color name="primary_light">#FFEEF2FF</color>
-    <color name="background">#FFF5F7FA</color>
+    <color name="primary_light">#FF818CF8</color>
+    <color name="primary_container">#FFEEF2FF</color>
+    <color name="on_primary">#FFFFFFFF</color>
+    <color name="on_primary_container">#FF312E81</color>
+
+    <!-- Secondary -->
+    <color name="secondary">#FF7C3AED</color>
+    <color name="secondary_container">#FFF5F3FF</color>
+    <color name="on_secondary">#FFFFFFFF</color>
+    <color name="on_secondary_container">#FF4C1D95</color>
+
+    <!-- Tertiary -->
+    <color name="tertiary">#FF0891B2</color>
+    <color name="tertiary_container">#FFECFEFF</color>
+    <color name="on_tertiary">#FFFFFFFF</color>
+
+    <!-- Surface -->
+    <color name="background">#FFF8FAFC</color>
     <color name="surface">#FFFFFFFF</color>
-    <color name="text_primary">#FF1E293B</color>
+    <color name="surface_variant">#FFF1F5F9</color>
+    <color name="surface_container_low">#FFF8FAFC</color>
+    <color name="surface_container">#FFF1F5F9</color>
+    <color name="surface_container_high">#FFE2E8F0</color>
+    <color name="on_surface">#FF0F172A</color>
+    <color name="on_surface_variant">#FF475569</color>
+
+    <!-- Text -->
+    <color name="text_primary">#FF0F172A</color>
     <color name="text_secondary">#FF64748B</color>
+    <color name="text_tertiary">#FF94A3B8</color>
+    <color name="text_on_primary">#FFFFFFFF</color>
+
+    <!-- Outline -->
+    <color name="outline">#FFCBD5E1</color>
+    <color name="outline_variant">#FFE2E8F0</color>
     <color name="border">#FFE2E8F0</color>
-    <color name="success">#FF22C55E</color>
-    <color name="danger">#FFEF4444</color>
+
+    <!-- Semantic -->
+    <color name="success">#FF16A34A</color>
+    <color name="success_container">#FFF0FDF4</color>
+    <color name="on_success">#FFFFFFFF</color>
+    <color name="warning">#FFF59E0B</color>
+    <color name="warning_container">#FFFFFBEB</color>
+    <color name="danger">#FFDC2626</color>
+    <color name="danger_container">#FFFEF2F2</color>
+    <color name="on_danger">#FFFFFFFF</color>
+    <color name="error">#FFDC2626</color>
+    <color name="on_error">#FFFFFFFF</color>
+    <color name="error_container">#FFFEF2F2</color>
+
+    <!-- Misc -->
     <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="scrim">#80000000</color>
+    <color name="shimmer_base">#FFE2E8F0</color>
+    <color name="shimmer_highlight">#FFF8FAFC</color>
+
+    <!-- Gradient -->
+    <color name="gradient_start">#FF4F46E5</color>
+    <color name="gradient_end">#FF7C3AED</color>
 </resources>

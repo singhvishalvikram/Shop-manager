@@ -1,19 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App -->
     <string name="app_name">Shop Manager</string>
+
+    <!-- Navigation -->
     <string name="dashboard">Dashboard</string>
     <string name="items">Items</string>
     <string name="add_item">Add Item</string>
-    <string name="search_hint">Search by name, type, or description...</string>
+    <string name="edit_item">Edit Item</string>
+    <string name="item_details">Item Details</string>
+    <string name="sales">Sales</string>
+
+    <!-- Dashboard -->
+    <string name="total_items">Total Items</string>
+    <string name="categories">Categories</string>
+    <string name="avg_price">Avg Price</string>
+    <string name="stock_value">Stock Value</string>
+    <string name="type_breakdown">Type Breakdown</string>
+    <string name="recently_added">Recently Added</string>
+    <string name="no_items">No items yet</string>
+    <string name="no_items_subtitle">Tap + to add your first item</string>
+    <string name="welcome_title">Welcome to Shop Manager</string>
+    <string name="welcome_subtitle">Your complete inventory solution</string>
+
+    <!-- Search -->
+    <string name="search_hint">Search by name, type, or description…</string>
+    <string name="no_search_results">No items match your search</string>
+    <string name="items_count">%1$d item(s)</string>
+
+    <!-- Form -->
+    <string name="item_name_hint">Item Name *</string>
+    <string name="type_hint">Type / Category</string>
+    <string name="description_hint">Description</string>
+    <string name="price_hint">Price (₹)</string>
+    <string name="quantity_hint">Quantity</string>
+    <string name="location_hint">Location / Shelf</string>
+    <string name="add_new_item">Add New Item</string>
+    <string name="save_item">Save Item</string>
+    <string name="update_item">Update Item</string>
+    <string name="name_required">Name is required</string>
+    <string name="price_invalid">Please enter a valid price</string>
+
+    <!-- Actions -->
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
     <string name="take_photo">Take Photo</string>
-    <string name="no_items">No items yet</string>
-    <string name="total_items">Total Items</string>
-    <string name="categories">Categories</string>
-    <string name="avg_price">Avg Price</string>
-    <string name="stock_value">Stock Value</string>
+    <string name="back_to_items">← Back to Items</string>
+    <string name="undo">Undo</string>
+    <string name="retry">Retry</string>
+
+    <!-- Detail Labels -->
+    <string name="label_name">NAME</string>
+    <string name="label_type">TYPE</string>
+    <string name="label_description">DESCRIPTION</string>
+    <string name="label_price">PRICE</string>
+    <string name="label_location">LOCATION</string>
+    <string name="label_quantity">QUANTITY</string>
+    <string name="label_no_value">—</string>
+
+    <!-- Dialogs -->
+    <string name="delete_item_title">Delete Item</string>
+    <string name="delete_item_message">Delete \"%1$s\"? This cannot be undone.</string>
+    <string name="camera_permission_title">Camera Permission</string>
     <string name="camera_permission">Camera permission is needed to take photos of items.</string>
+    <string name="camera_permission_denied">Camera permission needed for photos</string>
+    <string name="ok">OK</string>
+
+    <!-- Feedback -->
+    <string name="item_saved">Item saved!</string>
+    <string name="item_deleted">Item deleted</string>
+    <string name="photo_failed">Failed to process photo</string>
+
+    <!-- Sales -->
+    <string name="record_sale">Record Sale</string>
+    <string name="sale_quantity_hint">Quantity Sold</string>
+    <string name="sale_price_hint">Sale Price (₹)</string>
+    <string name="sale_description_hint">Sale Notes</string>
+    <string name="total_revenue">Total Revenue</string>
+    <string name="no_sales">No sales recorded yet</string>
+    <string name="sale_recorded">Sale recorded!</string>
+    <string name="sales_history">Sales History</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_item_image">Item photo</string>
+    <string name="cd_clear_search">Clear search</string>
+    <string name="cd_search">Search items</string>
+    <string name="cd_add_item">Add new item</string>
+    <string name="cd_back">Go back</string>
+    <string name="cd_delete_item">Delete item</string>
+    <string name="cd_edit_item">Edit item</string>
+
+    <!-- Empty States -->
+    <string name="empty_inventory_title">Your inventory is empty</string>
+    <string name="empty_inventory_subtitle">Start by adding your first item</string>
+    <string name="empty_search_title">No results found</string>
+    <string name="empty_search_subtitle">Try a different search term</string>
+    <string name="empty_sales_title">No sales yet</string>
+    <string name="empty_sales_subtitle">Record your first sale from an item</string>
 </resources>
